@@ -3,59 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Yunnan-Vietnam Route Map</title>
+    <title>Yunnan Travel</title>
     <style>
+        /* General styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
-        .map-container {
-            max-width: 100%;
-            height: auto;
-            aspect-ratio: 16 / 9;
-        }
-        svg {
+        /* Responsive map styles */
+        #map {
             width: 100%;
-            height: auto;
+            height: 400px; /* Default height */
         }
-        .legend {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background: #f9f9f9;
+        /* Media Queries for responsive behavior */
+        @media (max-width: 768px) {
+            #map {
+                height: 300px; /* Smaller height for tablets */
+            }
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            font-size: clamp(12px, 1vw + 1em, 16px);
-        }
-        .color-box {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
+        @media (max-width: 480px) {
+            #map {
+                height: 200px; /* Smaller height for mobile */
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Yunnan-Vietnam Route Map</h1>
-    <div class="map-container">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
-            <!-- SVG content goes here -->
-        </svg>
-    </div>
-    <div class="legend">
-        <div class="legend-item">
-            <div class="color-box" style="background-color: #FF5733;"></div>
-            <span>Route 1</span>
-        </div>
-        <div class="legend-item">
-            <div class="color-box" style="background-color: #33FF57;"></div>
-            <span>Route 2</span>
-        </div>
-    </div>
+    <h1>Welcome to Yunnan Travel</h1>
+    <div id="map"></div>
+    <script>
+        // Initialization of the map script here
+    </script>
 </body>
 </html>
