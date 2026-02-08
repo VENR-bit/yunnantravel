@@ -1,14 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yunnan-Vietnam Route Map</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yunnan–Vietnam Route Map</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    color: #e0e0e0;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: #f0e6d3;
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #8a8a9a;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  .map-container {
+    position: relative;
+    width: 900px;
+    height: 1060px;
+    background: linear-gradient(170deg, #16213e 0%, #1a1a2e 40%, #0f3460 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .map-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 30% 20%, rgba(46,125,50,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 300px at 70% 70%, rgba(211,47,47,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .terrain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image:
+      repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px;
+    pointer-events: none;
+  }
+
+  svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  .loc-dot {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .loc-dot:hover { transform: scale(1.3); }
+
+  .loc-label {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    fill: #f0e6d3;
+    pointer-events: none;
+  }
+  .loc-label-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    fill: #8a8a9a;
+    pointer-events: none;
+  }
+  .loc-label-new {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 9px;
+    fill: #81c784;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    max-width: 900px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #b0b0c0;
+  }
+  .legend-line {
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .border-line {
+    stroke-dasharray: 8 5;
+    stroke: rgba(255,255,255,0.15);
+    stroke-width: 1.5;
+  }
+
+  .country-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    fill: rgba(255,255,255,0.04);
+    letter-spacing: 12px;
+  }
+
+  .route-arrow {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .route-arrow-bg {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.15;
+  }
+
+  .phase-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .day-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 9.5px;
+    fill: rgba(255,255,255,0.5);
+  }
+
+  .compass { opacity: 0.3; }
+
+  .notes {
+    max-width: 900px;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .note-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    color: #9a9ab0;
+    line-height: 1.5;
+  }
+  .note-card strong {
+    color: #d0c8b8;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+  }
+</style>
 </head>
 <body>
-    <h1>Yunnan-Vietnam Route Map</h1>
-    <img src="route-map.png" alt="Yunnan-Vietnam Route Map">
-    <p>This is a map showing the routes from Yunnan to Vietnam.</p>
+<h1>Yunnan → Vietnam Route Map</h1>
+<p class="subtitle">Mar 26 – Apr 20 · 6 Phases · Overland No-Backtrack Route</p>
+<div class="map-container">
+  <div class="terrain"></div>
+  <svg viewBox="0 0 900 1060" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ef5350"/></marker>
+      <marker id="arr2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ab47bc"/></marker>
+      <marker id="arr3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#42a5f5"/></marker>
+      <marker id="arr4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#66bb6a"/></marker>
+      <marker id="arr5" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ffa726"/></marker>
+      <marker id="arr6" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ffee58"/></marker>
+      <marker id="arr4r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ffab40"/></marker>
+
+      <filter id="glow"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-sm"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <text x="300" y="200" class="country-label" transform="rotate(-15 300 200)">YUNNAN · CHINA</text>
+    <text x="560" y="940" class="country-label" transform="rotate(-8 560 940)">VIETNAM</text>
+    <line x1="100" y1="820" x2="780" y2="780" class="border-line"/>
+    <text x="720" y="810" font-family="DM Sans" font-size="11" fill="rgba(255,255,255,0.2)" font-weight="600">BORDER</text>
+    <path d="M 50 400 Q 200 380, 350 420 Q 500 460, 650 400 Q 780 360, 900 390" stroke="rgba(255,255,255,0.03)" stroke-width="1" fill="none"/>
+    <circle cx="500" cy="310" r="22" fill="none" stroke="#ef5350" stroke-width="2" stroke-dasharray="4 3" opacity="0.4"/>
+    <path d="M 520 315 Q 590 310, 635 305" class="route-arrow-bg" stroke="#ef5350"/>
+    <path d="M 520 315 Q 590 310, 635 305" class="route-arrow" stroke="#ef5350" marker-end="url(#arr1)"/>
+    <path d="M 635 315 Q 590 325, 530 325" class="route-arrow" stroke="#ef5350" stroke-dasharray="4 3" opacity="0.5"/>
+    <path d="M 510 330 Q 540 390, 570 440 Q 590 470, 610 490" class="route-arrow-bg" stroke="#ab47bc"/>
+    <path d="M 510 330 Q 540 390, 570 440 Q 590 470, 610 490" class="route-arrow" stroke="#ab47bc" marker-end="url(#arr2)"/>
+    <path d="M 620 510 Q 610 550, 580 590 Q 560 620, 540 640" class="route-arrow-bg" stroke="#ab47bc"/>
+    <path d="M 620 510 Q 610 550, 580 590 Q 560 620, 540 640" class="route-arrow" stroke="#ab47bc" marker-end="url(#arr2)"/>
+    <path d="M 530 640 Q 510 590, 495 530 Q 480 460, 490 400 Q 493 360, 495 330" class="route-arrow-bg" stroke="#ab47bc"/>
+    <path d="M 530 640 Q 510 590, 495 530 Q 480 460, 490 400 Q 493 360, 495 330" class="route-arrow" stroke="#ab47bc" stroke-dasharray="6 4" marker-end="url(#arr2)"/>
+    <text x="455" y="480" class="day-tag" fill="#ce93d8" font-size="9" transform="rotate(-80 455 480)">↑ DIFF ROAD BACK</text>
+    <path d="M 480 300 Q 420 280, 340 250 Q 280 230, 230 210" class="route-arrow-bg" stroke="#42a5f5"/>
+    <path d="M 480 300 Q 420 280, 340 250 Q 280 230, 230 210" class="route-arrow" stroke="#42a5f5" marker-end="url(#arr3)"/>
+    <path d="M 215 195 Q 200 170, 195 145" class="route-arrow-bg" stroke="#42a5f5"/>
+    <path d="M 215 195 Q 200 170, 195 145" class="route-arrow" stroke="#42a5f5" marker-end="url(#arr3)"/>
+    <path d="M 200 130 Q 240 115, 290 100 Q 330 90, 360 82" class="route-arrow-bg" stroke="#42a5f5"/>
+    <path d="M 200 130 Q 240 115, 290 100 Q 330 90, 360 82" class="route-arrow" stroke="#42a5f5" marker-end="url(#arr3)"/>
+    <path d="M 375 65 Q 350 50, 310 38 Q 270 28, 235 25" class="route-arrow-bg" stroke="#42a5f5"/>
+    <path d="M 375 65 Q 350 50, 310 38 Q 270 28, 235 25" class="route-arrow" stroke="#42a5f5" marker-end="url(#arr3)"/>
+    <text x="360" y="150" class="day-tag" fill="#90caf9" font-size="9">NO BACKTRACK ✓</text>
+    <path d="M 225 38 Q 235 80, 230 130 Q 228 165, 225 200" class="route-arrow-bg" stroke="#ffab40"/>
+    <path d="M 225 38 Q 235 80, 230 130 Q 228 165, 225 200" class="route-arrow" stroke="#ffab40" stroke-dasharray="6 4" marker-end="url(#arr4r)" opacity="0.7"/>
+    <text x="243" y="115" class="day-tag" fill="#ffab40" font-size="8.5">⚠️ ONLY REPEAT</text>
+    <path d="M 210 218 Q 195 260, 175 300 Q 160 340, 155 365" class="route-arrow-bg" stroke="#66bb6a"/>
+    <path d="M 210 218 Q 195 260, 175 300 Q 160 340, 155 365" class="route-arrow" stroke="#66bb6a" marker-end="url(#arr4)"/>
+    <path d="M 155 385 Q 150 440, 155 500 Q 162 560, 175 600" class="route-arrow-bg" stroke="#66bb6a"/>
+    <path d="M 155 385 Q 150 440, 155 500 Q 162 560, 175 600" class="route-arrow" stroke="#66bb6a" marker-end="url(#arr4)"/>
+    <path d="M 182 620 Q 200 660, 215 700 Q 225 720, 230 738" class="route-arrow-bg" stroke="#66bb6a"/>
+    <path d="M 182 620 Q 200 660, 215 700 Q 225 720, 230 738" class="route-arrow" stroke="#66bb6a" marker-end="url(#arr4)"/>
+    <text x="105" y="500" class="day-tag" fill="#a5d6a7" font-size="9" transform="rotate(-85 105 500)">ALL NEW WESTERN ROAD ✓</text>
+    <path d="M 250 745 Q 310 680, 370 610 Q 420 540, 445 460 Q 460 410, 475 370" class="route-arrow-bg" stroke="#ffa726"/>
+    <path d="M 250 745 Q 310 680, 370 610 Q 420 540, 445 460 Q 460 410, 475 370" class="route-arrow" stroke="#ffa726" marker-end="url(#arr5)"/>
+    <path d="M 485 380 Q 530 460, 570 550 Q 610 640, 640 720 Q 655 755, 665 775" class="route-arrow-bg" stroke="#ffa726"/>
+    <path d="M 485 380 Q 530 460, 570 550 Q 610 640, 640 720 Q 655 755, 665 775" class="route-arrow" stroke="#ffa726" marker-end="url(#arr5)"/>
+    <text x="400" y="435" class="day-tag" fill="#ffcc80" font-size="9">YUXI JUNCTION ✓</text>
+    <text x="395" y="448" class="day-tag" fill="#ffcc80" font-size="8">No Kunming backtrack</text>
+    <path d="M 672 795 Q 680 830, 685 860 Q 688 880, 690 895" class="route-arrow-bg" stroke="#ffee58"/>
+    <path d="M 672 795 Q 680 830, 685 860 Q 688 880, 690 895" class="route-arrow" stroke="#ffee58" marker-end="url(#arr6)"/>
+    <path d="M 695 915 Q 700 940, 710 960 Q 720 975, 735 985" class="route-arrow-bg" stroke="#ffee58"/>
+    <path d="M 695 915 Q 700 940, 710 960 Q 720 975, 735 985" class="route-arrow" stroke="#ffee58" marker-end="url(#arr6)"/>
+    <circle cx="218" cy="25" r="8" fill="#42a5f5" opacity="0.2"/>
+    <circle cx="218" cy="25" r="5" fill="#42a5f5" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="155" y="55" class="loc-label">🏔️ Shangri-La</text>
+    <text x="167" y="67" class="loc-label-sub">3,300m · Tibetan · Apr 6</text>
+    <circle cx="380" cy="75" r="7" fill="#42a5f5" opacity="0.2"/>
+    <circle cx="380" cy="75" r="4.5" fill="#42a5f5" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="400" y="72" class="loc-label">Lijiang</text>
+    <text x="400" y="84" class="loc-label-sub">UNESCO · Apr 3–5</text>
+    <circle cx="190" cy="135" r="6" fill="#42a5f5" opacity="0.2"/>
+    <circle cx="190" cy="135" r="4" fill="#42a5f5" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="108" y="132" class="loc-label">Shaxi</text>
+    <text x="100" y="144" class="loc-label-sub">Tea Horse Rd · Apr 3</text>
+    <circle cx="220" cy="205" r="8" fill="#42a5f5" opacity="0.2"/>
+    <circle cx="220" cy="205" r="5" fill="#42a5f5" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="100" y="205" class="loc-label">🏯 Dali</text>
+    <text x="100" y="217" class="loc-label-sub">Three Pagodas · Apr 1–2</text>
+    <circle cx="500" cy="310" r="12" fill="#ef5350" opacity="0.15"/>
+    <circle cx="500" cy="310" r="7" fill="#ef5350" filter="url(#glow)" class="loc-dot"/>
+    <text x="530" y="300" class="loc-label" font-size="15" fill="#ffcdd2">★ KUNMING</text>
+    <text x="530" y="314" class="loc-label-sub">Hub · Mar 26–28 & 31</text>
+    <circle cx="650" cy="305" r="5" fill="#ef5350" opacity="0.2"/>
+    <circle cx="650" cy="305" r="3.5" fill="#ef5350" class="loc-dot"/>
+    <text x="665" y="300" class="loc-label" font-size="11">Stone Forest</text>
+    <text x="665" y="312" class="loc-label-sub">UNESCO · Mar 28</text>
+    <circle cx="478" cy="370" r="6" fill="#ffa726" opacity="0.2"/>
+    <circle cx="478" cy="370" r="4" fill="#ffa726" class="loc-dot"/>
+    <text x="418" y="385" class="loc-label" font-size="11">⚡ Yuxi</text>
+    <text x="418" y="397" class="loc-label-sub">Rail junction</text>
+    <circle cx="152" cy="375" r="6" fill="#66bb6a" opacity="0.2"/>
+    <circle cx="152" cy="375" r="4" fill="#66bb6a" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="58" y="372" class="loc-label">Weishan</text>
+    <text x="55" y="384" class="loc-label-sub">Nanzhao · Apr 7</text>
+    <text x="105" y="373" class="loc-label-new">🆕</text>
+    <circle cx="620" cy="498" r="7" fill="#ab47bc" opacity="0.2"/>
+    <circle cx="620" cy="498" r="4.5" fill="#ab47bc" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="640" y="493" class="loc-label">Jianshui</text>
+    <text x="640" y="505" class="loc-label-sub">1,200 yrs · Mar 29</text>
+    <text x="695" y="493" class="loc-label-new">🆕</text>
+    <circle cx="175" cy="608" r="6" fill="#66bb6a" opacity="0.2"/>
+    <circle cx="175" cy="608" r="4" fill="#66bb6a" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="62" y="605" class="loc-label">🍵 Pu'er</text>
+    <text x="68" y="617" class="loc-label-sub">Tea capital · Apr 8</text>
+    <text x="125" y="605" class="loc-label-new">🆕</text>
+    <circle cx="535" cy="648" r="7" fill="#ab47bc" opacity="0.2"/>
+    <circle cx="535" cy="648" r="4.5" fill="#ab47bc" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="555" y="643" class="loc-label">Yuanyang</text>
+    <text x="555" y="655" class="loc-label-sub">Rice terraces · Mar 30–31</text>
+    <circle cx="237" cy="750" r="8" fill="#66bb6a" opacity="0.2"/>
+    <circle cx="237" cy="750" r="5" fill="#66bb6a" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="105" y="745" class="loc-label">🌴 Xishuangbanna</text>
+    <text x="105" y="758" class="loc-label-sub">Tropical · Theravada ☸️ · Apr 8–9</text>
+    <circle cx="668" cy="783" r="7" fill="#ffa726" opacity="0.2"/>
+    <circle cx="668" cy="783" r="4.5" fill="#ffa726" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="690" y="777" class="loc-label">Hekou</text>
+    <text x="690" y="789" class="loc-label-sub">Border · Apr 9 night</text>
+    <circle cx="688" cy="900" r="7" fill="#ffee58" opacity="0.2"/>
+    <circle cx="688" cy="900" r="4.5" fill="#ffee58" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="710" y="895" class="loc-label" fill="#fff9c4">🏔️ Sapa</text>
+    <text x="710" y="907" class="loc-label-sub" fill="#fff9c4">Rice terraces · Apr 10–12</text>
+    <text x="648" y="890" class="loc-label-sub" fill="#aaa">Lào Cai↗</text>
+    <circle cx="745" cy="990" r="9" fill="#ffee58" opacity="0.15"/>
+    <circle cx="745" cy="990" r="6" fill="#ffee58" filter="url(#glow-sm)" class="loc-dot"/>
+    <text x="770" y="985" class="loc-label" fill="#fff9c4" font-size="14">🇻🇳 Hanoi</text>
+    <text x="770" y="998" class="loc-label-sub" fill="#fff9c4">Capital · Apr 14–16+</text>
+    <text x="770" y="1010" class="loc-label-sub" fill="#777">→ Hạ Long Bay · Ninh Bình</text>
+    <rect x="550" y="255" width="90" height="20" rx="10" fill="#ef5350" opacity="0.9"/>
+    <text x="595" y="269" text-anchor="middle" class="phase-badge" fill="white">PHASE 1</text>
+    <rect x="650" y="448" width="90" height="20" rx="10" fill="#ab47bc" opacity="0.9"/>
+    <text x="695" y="462" text-anchor="middle" class="phase-badge" fill="white">PHASE 2</text>
+    <rect x="420" y="150" width="90" height="20" rx="10" fill="#42a5f5" opacity="0.9"/>
+    <text x="465" y="164" text-anchor="middle" class="phase-badge" fill="white">PHASE 3</text>
+    <rect x="55" y="465" width="90" height="20" rx="10" fill="#66bb6a" opacity="0.9"/>
+    <text x="100" y="479" text-anchor="middle" class="phase-badge" fill="white">PHASE 4</text>
+    <rect x="520" y="570" width="90" height="20" rx="10" fill="#ffa726" opacity="0.9"/>
+    <text x="565" y="584" text-anchor="middle" class="phase-badge" fill="white">PHASE 5</text>
+    <rect x="700" y="840" width="90" height="20" rx="10" fill="#e6d520" opacity="0.9"/>
+    <text x="745" y="854" text-anchor="middle" class="phase-badge" fill="333">PHASE 6</text>
+    <g class="compass" transform="translate(820, 60)">
+      <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <text x="0" y="-28" text-anchor="middle" font-family="DM Sans" font-size="12" fill="rgba(255,255,255,0.4)" font-weight="700">N</text>
+      <line x1="0" y1="-18" x2="0" y2="-8" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+      <line x1="0" y1="8" x2="0" y2="18" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <line x1="-18" y1="0" x2="-8" y2="0" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <line x1="8" y1="0" x2="18" y2="0" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+    </g>
+    <text x="668" y="830" text-anchor="middle" font-size="16">🌉</text>
+    <text x="668" y="845" text-anchor="middle" font-family="DM Sans" font-size="8" fill="#ffa726">Friendship Bridge</text>
+    <text x="218" cy="25" font-size="14" x="138" y="33">☸️</text>
+    <text x="175" cy="608" font-size="11" x="193" y="608">☸️</text>
+  </svg>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-line" style="background:#ef5350"></div>Phase 1: Kunming (Mar 27–28)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#ab47bc"></div>Phase 2: SE Loop (Mar 29–31)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#42a5f5"></div>Phase 3: Northwest (Apr 1–6)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#66bb6a"></div>Phase 4: South New Route (Apr 7–8)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#ffa726"></div>Phase 5: To Border (Apr 9)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#ffee58"></div>Phase 6: Vietnam (Apr 10+)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#81c784"></div>🆕 New Destination</div>
+  <div class="legend-item"><div class="legend-line" style="background:#ffab40; border-style:dashed"></div>⚠️ Only Repeated Section</div>
+</div>
+
+<div class="notes">
+  <div class="note-card">
+    <strong>🔄 Loop Strategy</strong>
+    SE Loop returns via Gejiu (different road). NW line goes Dali→Shaxi→Lijiang→Shangri-La without backtracking. South route uses entirely new western corridor.
+  </div>
+  <div class="note-card">
+    <strong>⚡ Yuxi Junction Trick</strong>
+    China-Laos Railway (from Xishuangbanna) & Kunming-Hekou Railway (to Vietnam) both pass through Yuxi — no need to backtrack to Kunming!
+  </div>
+  <div class="note-card">
+    <strong>☸️ Buddhist Highlights</strong>
+    Yuantong Temple · Shibao Grottoes · Sumtseling Monastery · Dai Theravada Temples · Trấn Quốc Pagoda · Bái Đính Temple
+  </div>
+</div>
+
 </body>
 </html>
