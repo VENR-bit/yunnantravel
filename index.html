@@ -3,26 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yunnan Travel</title>
+    <link rel="stylesheet" href="styles.css">
+    <title>Yunnan-Vietnam Route Map</title>
     <style>
-        /* Mobile responsive design improvements */
-        #map {
-            aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
-            width: 100%; /* Flexible width */
-            height: auto; /* Auto height based on width */
-            max-width: 600px; /* Max width constraint for larger screens */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .map-container {
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+        }
+        .legend {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: clamp(12px, 1vw + 1em, 16px);
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Yunnan Travel</h1>
-    </header>
-    <div id="map">
-        <!-- Map will be rendered here -->
+    <h1>Yunnan-Vietnam Route Map</h1>
+    <div class="map-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+            <!-- SVG content goes here -->
+        </svg>
     </div>
-    <footer>
-        <p>&copy; 2026 Yunnan Travel</p>
-    </footer>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="color-box" style="background-color: #FF5733;"></div>
+            <span>Route 1</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background-color: #33FF57;"></div>
+            <span>Route 2</span>
+        </div>
+    </div>
 </body>
 </html>
